@@ -1,5 +1,9 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox
+import streamlit as st
+
+st.set_page_config(page_title="Quantum Kavach")
+st.title("🔐 Quantum Kavach - Secure Chat")
+st.write("App successfully deployed!")
+
 import secrets
 import string
 import os
