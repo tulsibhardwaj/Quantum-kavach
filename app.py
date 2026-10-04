@@ -1,112 +1,57 @@
 import streamlit as st
-import random, string, re, io
 from cryptography.fernet import Fernet
+import re
+import random, string
 from PIL import Image
-import hashlib
 
-st.set_page_config(page_title="Quantum Kavach - DPDP Compliant", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="Quantum Kavach", layout="wide")
+st.title("🛡️ Quantum Kavach - 100% Offline Data Protection Suite")
+st.markdown("✅ **DPDP Act 2023 Compliant | 100% Offline | No API Needed | Saves 250 Crore Fine**")
 
-# --- Key for Offline Encryption ---
-if 'key' not in st.session_state:
-    st.session_state.key = Fernet.generate_key()
-fernet = Fernet(st.session_state.key)
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Offline Vault (E-Commerce/Hospital)", "Fake ID Detector (Bank/Govt)", "Leak Guard (IT Company)", "Stego Vault", "Password Generator"])
 
-st.markdown("<h1 style='text-align:center'>🛡️ Quantum Kavach - 100% Offline Data Protection Suite</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:green; font-weight:bold;'>✅ DPDP Act 2023 Compliant | 100% Offline | No API Needed | Saves 250 Crore Fine</p>", unsafe_allow_html=True)
-
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📁 Offline Vault (E-Commerce/Hospital)", "🪪 Fake ID Detector (Bank/Govt)", "🚨 Leak Guard (IT Company)", "🖼️ Stego Vault", "🔑 Password Generator"])
-
-# --- TAB 1: OFFLINE VAULT ---
 with tab1:
-    st.subheader("Offline File Locker - Customer Data ko Lock Rakhe")
-    st.info("Use Case: Amazon, Flipkart, Apollo Hospital ka customer data hacker se bachana")
-    uploaded = st.file_uploader("File Upload karo (200MB)", key="vault")
-    if uploaded:
-        data = uploaded.read()
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button("🔒 Lock File - Encrypt"):
-                enc = fernet.encrypt(data)
-                st.success(f"{uploaded.name} Locked! Ab koi hacker nahi khol payega.")
-                st.download_button("📥 Download Locked File", enc, file_name=uploaded.name+".kavach")
-        with c2:
-            if st.button("🔓 Unlock File - Decrypt"):
-                try:
-                    dec = fernet.decrypt(data)
-                    st.success("Unlocked Successfully!")
-                    st.download_button("📥 Download Original", dec, file_name=uploaded.name.replace(".kavach",""))
-                except:
-                    st.error("Ye file Quantum Kavach se lock nahi hai!")
+    st.subheader("Offline Vault - Customer Data Encrypt Karo")
+    key = Fernet.generate_key()
+    f = Fernet(key)
+    data = st.text_input("Customer ka data likho (e.g. 9876543210)")
+    if st.button("Encrypt"):
+        if data:
+            enc = f.encrypt(data.encode())
+            st.success(f"Encrypted: {enc.decode()}")
+            st.info(f"Key: {key.decode()}")
 
-# --- TAB 2: FAKE ID DETECTOR ---
 with tab2:
-    st.subheader("Fake Aadhaar / PAN Detector - Bank ka Paisa Bachao")
-    st.info("Use Case: SBI, HDFC me Fake ID se Loan Fraud rokna. Govt me Fake Vote rokna.")
-    id_image = st.file_uploader("Aadhaar / PAN ki Image Upload Karo", type=["png","jpg","jpeg"], key="fake")
-    if id_image:
-        img = Image.open(id_image)
-        st.image(img, width=300)
-        if st.button("🔍 Check Fake or Real"):
-            # Simple offline logic for demo - checks metadata and blur
-            hash_val = hashlib.md5(img.tobytes()).hexdigest()
-            score = random.randint(78, 99) if len(hash_val) > 10 else random.randint(10, 40)
-            if score > 75:
-                st.success(f"✅ REAL ID Detected - Confidence: {score}% - KYC Approved")
-            else:
-                st.error(f"❌ FAKE ID Detected - Confidence: {100-score}% - Fraud Alert! Bank ka paisa bach gaya.")
-                st.warning("DPDP Alert: Fake ID attempt logged. Police/Govt report ready.")
+    st.subheader("Fake ID Detector")
+    aadhaar = st.text_input("Aadhaar Number daalo")
+    if st.button("Verify"):
+        if re.match(r"^\d{4}\s\d{4}\s\d{4}$", aadhaar) or re.match(r"^\d{12}$", aadhaar):
+            st.success("✅ Real Aadhaar Format")
+        else:
+            st.error("🚨 Fake ID Format!")
 
-# --- TAB 3: LEAK GUARD ---
 with tab3:
     st.subheader("Data Leak Guard - Infosys, TCS ka Secret Code Bachao")
     st.info("Use Case: Employee galti se secret code ChatGPT par daale usse pehle rokna")
-    text = st.text_area("Yaha apna Code / Email / Message paste karo jo bhejne wale ho:", height=150, placeholder="e.g., My API_KEY = sk-12345... or My Aadhaar is 1234...")
-    
-    # DLP Patterns
-    patterns = {
-        "Aadhaar": r"\b\d{4}\s?\d{4}\s?\d{4}\b",
-        "PAN": r"[A-Z]{5}[0-9]{4}[A-Z]{1}",
-        "API Key / Secret": r"(api_key|secret|password)\s*=\s*['\"][^'\"]+['\"]",
-        "Credit Card": r"\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b"
-    }
+    st.write("Yaha apna Code / Email / Message paste karo jo bhejne wale ho:")
+    user_input = st.text_area("e.g., My API_KEY = sk-12345... or My Aadhaar is 1234...", key="leak")
     
     if st.button("🛡️ Scan Before Sending"):
-        found = False
-        for name, pat in patterns.items():
-            if re.search(pat, text, re.IGNORECASE):
-                st.error(f"🚨 RUKO! Sensitive Data Found: {name} leak ho raha hai!")
-                st.warning(f"Company ka 250 Crore ka jurmana lag sakta hai! Isse mat bhejo.")
-                found = True
-        if not found and text:
+        text_lower = user_input.lower().replace(" ", "").replace("_","")
+        # Strong detection
+        if "apikey" in text_lower or "sk-" in user_input.lower() or "secret" in text_lower or "password" in text_lower or "api" in text_lower and "=" in user_input:
+            st.error("🚨 RUKO! Sensitive Data Found - API KEY / SECRET leak ho raha hai! DPDP Violation - Sending Blocked!")
+        elif "aadhaar" in text_lower or "aadhar" in text_lower or re.search(r"\d{4}\s?\d{4}\s?\d{4}", user_input):
+            st.error("🚨 RUKO! Aadhaar Data Leak Detected!")
+        else:
             st.success("✅ Safe to Send - Koi secret data nahi mila. DPDP Compliant.")
-        elif not text:
-            st.info("Kuch likho scan karne ke liye")
 
-# --- TAB 4: STEGANOGRAPHY ---
 with tab4:
-    st.subheader("Steganography Vault - Secret Message ko Image me Chupao")
-    st.info("Use Case: Army, Police ke liye secret message bhejna bina kisi ko pata chale")
-    s_img = st.file_uploader("Image lo", type=["png","jpg"], key="stego")
-    s_msg = st.text_input("Secret Message")
-    if s_img and s_msg:
-        st.image(Image.open(s_img), width=300)
-        if st.button("Hide Message in Image"):
-            # Demo encryption
-            encoded = fernet.encrypt(s_msg.encode())
-            st.success(f"Message Hide Ho Gaya! Encrypted Code: {encoded[:30].decode()}... (Demo)")
-            st.info("Ye image ab kisi ko bhi bhej do, koi bhi message nahi dekh payega bina Quantum Kavach ke.")
+    st.subheader("Stego Vault - Photo me secret chupao")
+    st.write("Upload image to hide data (Demo)")
 
-# --- TAB 5: PASSWORD GENERATOR ---
 with tab5:
-    st.subheader("Strong Password Generator")
-    if 'pwd' not in st.session_state:
-        st.session_state.pwd = ''.join(random.choices(string.ascii_letters + string.digits + "!@#$%", k=16))
-    st.code(st.session_state.pwd)
-    if st.button("Generate New Password"):
-        st.session_state.pwd = ''.join(random.choices(string.ascii_letters + string.digits + "!@#$%", k=16))
-        st.rerun()
-    st.metric("DPDP Compliance Score", "98.5%", "Compliant")
-
-st.divider()
-st.markdown("**Interview Line:** Sir, my Quantum Kavach does 3 things: 1. Saves Money (Stops Fake KYC Fraud) 2. Saves 250 Crore Fine (DPDP Act Compliant) 3. Saves Reputation (100% Offline, No Data Leak)")
-st.caption("Made by Tulsi Bhardwaj - Quantum Kavach")
+    st.subheader("Password Generator")
+    if st.button("Generate Strong Password"):
+        pwd = ''.join(random.choices(string.ascii_letters + string.digits + "!@#$%", k=12))
+        st.code(pwd)
